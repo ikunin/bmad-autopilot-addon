@@ -112,6 +112,93 @@ detect_and_lint() {
     fi
   fi
 
+  # Java
+  JAVA_FILES=$(echo "$files" | grep -E '\.java$' || true)
+  if [ -n "$JAVA_FILES" ]; then
+    if command -v checkstyle &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "checkstyle" "checkstyle -c /google_checks.xml" "$JAVA_FILES")\n"
+      found_any=true
+    elif command -v pmd &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "pmd" "pmd check -d" "$JAVA_FILES")\n"
+      found_any=true
+    fi
+  fi
+
+  # C
+  C_FILES=$(echo "$files" | grep -E '\.[ch]$' || true)
+  if [ -n "$C_FILES" ]; then
+    if command -v cppcheck &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "cppcheck" "cppcheck --enable=warning,style" "$C_FILES")\n"
+      found_any=true
+    elif command -v clang-tidy &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "clang-tidy" "clang-tidy" "$C_FILES")\n"
+      found_any=true
+    fi
+  fi
+
+  # C++
+  CPP_FILES=$(echo "$files" | grep -E '\.(cpp|cc|cxx|hpp|hxx)$' || true)
+  if [ -n "$CPP_FILES" ]; then
+    if command -v cppcheck &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "cppcheck" "cppcheck --enable=warning,style --language=c++" "$CPP_FILES")\n"
+      found_any=true
+    elif command -v clang-tidy &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "clang-tidy" "clang-tidy" "$CPP_FILES")\n"
+      found_any=true
+    fi
+  fi
+
+  # C# (.NET)
+  CS_FILES=$(echo "$files" | grep -E '\.cs$' || true)
+  if [ -n "$CS_FILES" ]; then
+    if command -v dotnet &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "dotnet-format" "dotnet format --verify-no-changes --diagnostics" "")\n"
+      found_any=true
+    fi
+  fi
+
+  # Swift
+  SWIFT_FILES=$(echo "$files" | grep -E '\.swift$' || true)
+  if [ -n "$SWIFT_FILES" ]; then
+    if command -v swiftlint &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "swiftlint" "swiftlint lint --quiet" "$SWIFT_FILES")\n"
+      found_any=true
+    fi
+  fi
+
+  # PL/SQL and SQL
+  SQL_FILES=$(echo "$files" | grep -E '\.(sql|pls|plb|pks|pkb|trg|fnc|prc)$' || true)
+  if [ -n "$SQL_FILES" ]; then
+    if command -v sqlfluff &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "sqlfluff" "sqlfluff lint --dialect oracle" "$SQL_FILES")\n"
+      found_any=true
+    fi
+  fi
+
+  # Kotlin
+  KT_FILES=$(echo "$files" | grep -E '\.kt$' || true)
+  if [ -n "$KT_FILES" ]; then
+    if command -v ktlint &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "ktlint" "ktlint" "$KT_FILES")\n"
+      found_any=true
+    elif command -v detekt &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "detekt" "detekt --input" "$KT_FILES")\n"
+      found_any=true
+    fi
+  fi
+
+  # PHP
+  PHP_FILES=$(echo "$files" | grep -E '\.php$' || true)
+  if [ -n "$PHP_FILES" ]; then
+    if command -v phpstan &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "phpstan" "phpstan analyse --no-progress" "$PHP_FILES")\n"
+      found_any=true
+    elif command -v phpcs &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "phpcs" "phpcs" "$PHP_FILES")\n"
+      found_any=true
+    fi
+  fi
+
   if [ "$found_any" = false ]; then
     return 1
   fi

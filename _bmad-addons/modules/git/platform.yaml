@@ -27,6 +27,46 @@ platforms:
     pr_list: "glab mr list --output json"
     pr_term: "MR"
 
+  bitbucket:
+    detect_cli: "bb --version"
+    detect_remote: "bitbucket\\.org[:/]"
+    # Bitbucket CLI (https://bitbucket.org/atlassian/bitbucket-cli) or API fallback
+    pr_create: |
+      bb pr create --source {branch} --destination {base_branch} --title "{title}" --description "$(cat <<'__BMAD_BB_EOF__'
+      {body}
+      __BMAD_BB_EOF__
+      )"
+    pr_merge: "bb pr merge {pr_id}"
+    pr_list: "bb pr list --format json"
+    pr_term: "PR"
+    # API fallback when CLI unavailable:
+    api_fallback:
+      pr_create: |
+        curl -s -X POST "https://api.bitbucket.org/2.0/repositories/{owner}/{repo}/pullrequests" \
+          -H "Authorization: Bearer $BITBUCKET_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"title":"{title}","source":{"branch":{"name":"{branch}"}},"destination":{"branch":{"name":"{base_branch}"}},"description":"{body}"}'
+
+  gitea:
+    detect_cli: "tea --version"
+    detect_remote: null # No standard domain — requires explicit config
+    # tea CLI: https://gitea.com/gitea/tea
+    pr_create: |
+      tea pr create --base {base_branch} --head {branch} --title "{title}" --description "$(cat <<'__BMAD_TEA_EOF__'
+      {body}
+      __BMAD_TEA_EOF__
+      )"
+    pr_merge: "tea pr merge {pr_number}"
+    pr_list: "tea pr list --output json"
+    pr_term: "PR"
+    # API fallback when tea CLI unavailable:
+    api_fallback:
+      pr_create: |
+        curl -s -X POST "{base_url}/api/v1/repos/{owner}/{repo}/pulls" \
+          -H "Authorization: token $GITEA_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"base":"{base_branch}","head":"{branch}","title":"{title}","body":"{body}"}'
+
   git_only:
     pr_create: null # Skip — print manual instructions
     pr_merge: null
@@ -34,14 +74,16 @@ platforms:
 
 # Auto-detection flow (runs once at autopilot boot, cached for session):
 #   1. If platform.provider explicitly set (not "auto"), use it
-#   2. Check installed CLIs: gh --version, glab --version
+#   2. Check installed CLIs: gh, glab, bb, tea
 #      - Exactly one found -> use it
-#      - Both found -> parse remote URL to break tie
+#      - Multiple found -> parse remote URL to break tie
 #      - None found -> git_only
 #   3. Cache detected platform in autopilot session state
 #   4. Re-detect only if a platform command fails
 #
-# Known limitations:
-#   - GitHub Enterprise with custom domains requires explicit provider: github
-#   - Bitbucket is not supported
-#   - Gitea is not supported (no stable CLI)
+# Notes:
+#   - GitHub Enterprise with custom domains: set provider: github
+#   - Bitbucket Server (self-hosted): set provider: bitbucket
+#   - Gitea (self-hosted): set provider: gitea and base_url in config
+#   - Bitbucket API fallback requires BITBUCKET_TOKEN env var
+#   - Gitea API fallback requires GITEA_TOKEN env var and base_url in config

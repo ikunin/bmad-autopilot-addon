@@ -184,12 +184,36 @@ The add-on uses the universal SKILL.md format — same skills work across all 9 
 bash _bmad-addons/install.sh --tools claude-code,cursor,gemini-cli
 ```
 
+## Git Platforms
+
+| Platform | CLI | Auto-Detect | API Fallback |
+|----------|-----|-------------|-------------|
+| GitHub | `gh` | `github.com` | No |
+| GitLab | `glab` | `gitlab.*` | No |
+| Bitbucket | `bb` | `bitbucket.org` | Yes (`BITBUCKET_TOKEN`) |
+| Gitea | `tea` | Explicit config | Yes (`GITEA_TOKEN` + `base_url`) |
+
+No CLI installed? The addon falls back to `git_only` mode — push works, PRs are skipped with manual instructions printed.
+
+## Supported Languages (Linting)
+
+| Language | Linters | Language | Linters |
+|----------|---------|----------|---------|
+| Python | ruff, flake8, pylint | Java | checkstyle, pmd |
+| JavaScript/TS | eslint, biome | C/C++ | cppcheck, clang-tidy |
+| Rust | cargo clippy | C# | dotnet format |
+| Go | golangci-lint | Swift | swiftlint |
+| Ruby | rubocop | PL/SQL | sqlfluff |
+| Kotlin | ktlint, detekt | PHP | phpstan, phpcs |
+
+First found wins per language. Multi-language projects (monorepos) lint all languages in one pass. See [Extending](docs/EXTENDING.md) to add more.
+
 ## Requirements
 
 - [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) v6.2.0+
 - A supported AI code agent (see table above)
 - Git repository with at least one commit
-- `gh` (GitHub CLI) or `glab` (GitLab CLI) for PR creation (optional)
+- Platform CLI for PR creation (optional — see table above)
 
 ## Documentation
 
@@ -197,6 +221,7 @@ bash _bmad-addons/install.sh --tools claude-code,cursor,gemini-cli
 - [Usage Guide](docs/USAGE.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Configuration Reference](docs/CONFIGURATION.md)
+- [Extending (Platforms & Languages)](docs/EXTENDING.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
 

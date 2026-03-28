@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.0.2] - 2026-03-28
+
+### Added
+
+#### Bitbucket & Gitea Platform Support
+- `platform.yaml`: Bitbucket (`bb` CLI + REST API fallback with `BITBUCKET_TOKEN`)
+- `platform.yaml`: Gitea (`tea` CLI + REST API fallback with `GITEA_TOKEN` + `base_url`)
+- `detect-platform.sh`: auto-detects Bitbucket (remote URL) and Gitea (tea CLI)
+- `create-pr.sh`: full PR creation for both platforms with CLI and API fallback
+
+#### 8 New Languages for Linting
+- Java (checkstyle, pmd)
+- C (cppcheck, clang-tidy)
+- C++ (cppcheck, clang-tidy)
+- C# (dotnet format)
+- Swift (swiftlint)
+- PL/SQL (sqlfluff — Oracle, PostgreSQL, MySQL, T-SQL dialects)
+- Kotlin (ktlint, detekt)
+- PHP (phpstan, phpcs)
+
+#### Documentation
+- `docs/EXTENDING.md`: guide for adding new platforms and languages
+
 ## [2.0.1] - 2026-03-28
 
 ### Changed

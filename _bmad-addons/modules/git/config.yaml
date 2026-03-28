@@ -59,6 +59,15 @@ git:
       rust: [cargo clippy]
       go: [golangci-lint]
       ruby: [rubocop]
+      java: [checkstyle, spotbugs, pmd]
+      c: [cppcheck, clang-tidy]
+      cpp: [cppcheck, clang-tidy]
+      csharp: [dotnet format]
+      swift: [swiftlint]
+      plsql: [sqlfluff]
+      kotlin: [ktlint, detekt]
+      php: [phpstan, phpcs]
+      # To add a new language: add an entry here and a matching block in scripts/lint-changed.sh
     auto_detect: true # Detect project language from manifest files
     scope: changed-files # Only lint files changed in this story
     blocking: false # Warn-only, never halt
@@ -94,10 +103,19 @@ git:
 
   # Platform detection
   platform:
-    provider: auto # auto | github | gitlab | git_only
+    provider: auto # auto | github | gitlab | bitbucket | gitea | git_only
     # Detection priority:
     #   1. Explicit provider in this config (if not "auto")
-    #   2. CLI detection: which CLIs are installed (gh, glab)
+    #   2. CLI detection: which CLIs are installed (gh, glab, bb, tea)
     #   3. Remote URL regex as last resort
     # Runs once at autopilot boot, cached for session.
     # Re-detect only if a platform command fails.
+    #
+    # For self-hosted Gitea:
+    #   provider: gitea
+    #   base_url: https://git.example.com  # required for API fallback
+    #   # Set GITEA_TOKEN env var for API auth
+    #
+    # For Bitbucket Server:
+    #   provider: bitbucket
+    #   # Set BITBUCKET_TOKEN env var for API auth
