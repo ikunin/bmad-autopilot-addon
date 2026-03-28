@@ -325,18 +325,27 @@ Resolve:
   `EnterWorktree(name: "{{current_story}}")`
   This creates `.claude/worktrees/{{current_story}}` with a new branch from HEAD.
   ALL subsequent tool calls now operate in this worktree directory.
+
+  **If EnterWorktree fails** (disk full, permissions, etc.):
+  - Log: "WARN: EnterWorktree failed — continuing without worktree isolation"
+  - Set `{{in_worktree}}` = false
+  - Create branch manually: `git checkout -b story/{{branch_name}}`
+  - Continue with the skill invocation in PROJECT_ROOT (no isolation)
+  - Git operations (commit, push, PR) still work on the branch
   </action>
 
-  <action>**Rename branch** to our naming convention.
-  Run: `git branch -m "$(git branch --show-current)" "story/{{branch_name}}"`
-  </action>
+  <check if="EnterWorktree succeeded">
+    <action>**Rename branch** to our naming convention.
+    Run: `git branch -m "$(git branch --show-current)" "story/{{branch_name}}"`
+    </action>
 
-  <action>**Init submodules** if needed.
-  Run: `if [ -f .gitmodules ]; then timeout 30 git submodule update --init --recursive 2>&1 || echo "SUBMODULE_TIMEOUT"; fi`
-  If SUBMODULE_TIMEOUT: warn "Submodule init timed out (may need auth). Continuing without."
-  </action>
+    <action>**Init submodules** if needed.
+    Run: `if [ -f .gitmodules ]; then timeout 30 git submodule update --init --recursive 2>&1 || echo "SUBMODULE_TIMEOUT"; fi`
+    If SUBMODULE_TIMEOUT: warn "Submodule init timed out (may need auth). Continuing without."
+    </action>
 
-  <action>Set `{{in_worktree}}` = true</action>
+    <action>Set `{{in_worktree}}` = true</action>
+  </check>
   <action>Update `{state_file}` (write to worktree copy since we're now IN the worktree)</action>
 </check>
 

@@ -1,10 +1,11 @@
 #!/bin/bash
 # Explicit file staging and commit. NEVER uses git add -A.
 #
-# Usage: stage-and-commit.sh --message "commit msg" [--allowlist path] [--max-size-mb 1]
+# Usage: stage-and-commit.sh --message "commit msg" [--allowlist path] [--max-size-mb 1] [--file-list path]
 #
 # Stages all uncommitted changes (tracked modifications + untracked non-ignored files).
-# Runs pre-commit checks: secrets scan (WARN), file size check.
+# Runs pre-commit checks: secrets scan (WARN), file size check, binary detection.
+# Optionally cross-references with a story File List for unexpected file warnings.
 # Commits with the given message.
 #
 # Output: commit SHA on success, warnings on stderr
@@ -14,6 +15,7 @@ set -e
 MESSAGE=""
 ALLOWLIST=""
 MAX_SIZE_MB=1
+FILE_LIST=""
 DRY_RUN=false
 
 while [[ "$#" -gt 0 ]]; do
@@ -21,9 +23,10 @@ while [[ "$#" -gt 0 ]]; do
     --message|-m) MESSAGE="$2"; shift ;;
     --allowlist) ALLOWLIST="$2"; shift ;;
     --max-size-mb) MAX_SIZE_MB="$2"; shift ;;
+    --file-list) FILE_LIST="$2"; shift ;;
     --dry-run) DRY_RUN=true ;;
     -h|--help)
-      echo "Usage: stage-and-commit.sh --message 'msg' [--allowlist path] [--max-size-mb 1]"
+      echo "Usage: stage-and-commit.sh --message 'msg' [--allowlist path] [--max-size-mb 1] [--file-list path]"
       exit 0
       ;;
   esac
@@ -106,6 +109,30 @@ while IFS= read -r file; do
     WARNINGS="${WARNINGS}WARN: large file $file (${SIZE_MB}MB > ${MAX_SIZE_MB}MB limit)\n"
   fi
 done <<< "$ALL_FILES"
+
+# 2c. Binary file detection
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  [ -f "$file" ] || continue
+  if file --mime-encoding "$file" 2>/dev/null | grep -q 'binary'; then
+    WARNINGS="${WARNINGS}WARN: binary file detected: $file (will be staged but verify it's intended)\n"
+  fi
+done <<< "$ALL_FILES"
+
+# 2d. File List cross-reference (if --file-list provided)
+if [ -n "$FILE_LIST" ] && [ -f "$FILE_LIST" ]; then
+  # Extract file paths from the File List (lines starting with - or *)
+  EXPECTED_FILES=$(grep -E '^\s*[-*]\s+' "$FILE_LIST" | sed 's/^[[:space:]]*[-*][[:space:]]*//' | sed 's/[[:space:]]*$//' || true)
+  if [ -n "$EXPECTED_FILES" ]; then
+    # Files in git diff but NOT in File List
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      if ! echo "$EXPECTED_FILES" | grep -qF "$file"; then
+        WARNINGS="${WARNINGS}WARN: unexpected file not in story File List: $file\n"
+      fi
+    done <<< "$ALL_FILES"
+  fi
+fi
 
 # Print warnings
 if [ -n "$WARNINGS" ]; then

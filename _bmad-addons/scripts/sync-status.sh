@@ -4,9 +4,11 @@
 # Uses atomic write (same-dir tmp + mv).
 #
 # Usage: sync-status.sh --story <key> --worktree <path> --status-file <path> \
+#          [--worktree-status-file <path>] \
 #          [--branch <name>] [--commit <sha>] [--patch-commits <sha,...>] \
 #          [--push-status <status>] [--pr-url <url>] [--lint-result <text>]
 #
+# If --worktree-status-file is not provided, searches common locations in the worktree.
 # This script uses simple text manipulation (not a YAML parser) to inject fields.
 # It appends git fields under the story's entry in development_status.
 set -e
@@ -14,6 +16,7 @@ set -e
 STORY=""
 WORKTREE=""
 STATUS_FILE=""
+WORKTREE_STATUS_FILE=""
 BRANCH=""
 STORY_COMMIT=""
 PATCH_COMMITS=""
@@ -26,6 +29,7 @@ while [[ "$#" -gt 0 ]]; do
     --story) STORY="$2"; shift ;;
     --worktree) WORKTREE="$2"; shift ;;
     --status-file) STATUS_FILE="$2"; shift ;;
+    --worktree-status-file) WORKTREE_STATUS_FILE="$2"; shift ;;
     --branch) BRANCH="$2"; shift ;;
     --commit) STORY_COMMIT="$2"; shift ;;
     --patch-commits) PATCH_COMMITS="$2"; shift ;;
@@ -33,7 +37,7 @@ while [[ "$#" -gt 0 ]]; do
     --pr-url) PR_URL="$2"; shift ;;
     --lint-result) LINT_RESULT="$2"; shift ;;
     -h|--help)
-      echo "Usage: sync-status.sh --story <key> --worktree <path> --status-file <path> [git fields...]"
+      echo "Usage: sync-status.sh --story <key> --status-file <path> [--worktree <path>] [--worktree-status-file <path>] [git fields...]"
       exit 0
       ;;
   esac
@@ -50,15 +54,17 @@ if [ ! -f "$STATUS_FILE" ]; then
   exit 1
 fi
 
-# Try to read story status from worktree copy if worktree provided
+# Try to read story status from worktree copy
 WORKTREE_STATUS=""
-if [ -n "$WORKTREE" ]; then
-  # Find the status file in the worktree (search common locations)
+if [ -n "$WORKTREE_STATUS_FILE" ] && [ -f "$WORKTREE_STATUS_FILE" ]; then
+  # Use explicitly provided path
+  WORKTREE_STATUS=$(grep -A1 "^  ${STORY}:" "$WORKTREE_STATUS_FILE" 2>/dev/null | grep 'status:' | awk '{print $2}' || true)
+elif [ -n "$WORKTREE" ]; then
+  # Search common locations in the worktree
   for candidate in \
     "$WORKTREE/_bmad-output/implementation-artifacts/sprint-status.yaml" \
     "$WORKTREE/_bmad-output/sprint-status.yaml"; do
     if [ -f "$candidate" ]; then
-      # Extract status value for this story using grep + awk
       WORKTREE_STATUS=$(grep -A1 "^  ${STORY}:" "$candidate" 2>/dev/null | grep 'status:' | awk '{print $2}' || true)
       break
     fi

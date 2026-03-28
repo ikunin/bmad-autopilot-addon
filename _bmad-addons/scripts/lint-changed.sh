@@ -33,94 +33,90 @@ if [ -z "$ALL_CHANGED" ]; then
   exit 0
 fi
 
-# Detect language and find linter
+# Run a single linter and collect output
+run_linter() {
+  local linter_name="$1"
+  local lint_cmd="$2"
+  local lint_files="$3"
+
+  echo "LINTER:$linter_name" >&2
+  local output=""
+  if [ -n "$lint_files" ]; then
+    output=$(echo "$lint_files" | xargs $lint_cmd 2>&1 || true)
+  else
+    output=$($lint_cmd 2>&1 || true)
+  fi
+  echo "$output"
+}
+
+# Detect all languages in changed files and lint each (multi-language support)
 detect_and_lint() {
   local files="$1"
-  local lang=""
-  local linter=""
-  local lint_cmd=""
-  local lint_files=""
+  local found_any=false
+  local combined_output=""
 
-  # Check for Python files
+  # Python
   PY_FILES=$(echo "$files" | grep -E '\.py$' || true)
   if [ -n "$PY_FILES" ]; then
     if command -v ruff &>/dev/null; then
-      linter="ruff"
-      lint_cmd="ruff check"
-      lint_files="$PY_FILES"
+      combined_output="${combined_output}$(run_linter "ruff" "ruff check" "$PY_FILES")\n"
+      found_any=true
     elif command -v flake8 &>/dev/null; then
-      linter="flake8"
-      lint_cmd="flake8"
-      lint_files="$PY_FILES"
+      combined_output="${combined_output}$(run_linter "flake8" "flake8" "$PY_FILES")\n"
+      found_any=true
     elif command -v pylint &>/dev/null; then
-      linter="pylint"
-      lint_cmd="pylint --output-format=text"
-      lint_files="$PY_FILES"
+      combined_output="${combined_output}$(run_linter "pylint" "pylint --output-format=text" "$PY_FILES")\n"
+      found_any=true
     fi
   fi
 
-  # Check for JS/TS files
+  # JavaScript / TypeScript
   JSTS_FILES=$(echo "$files" | grep -E '\.(js|jsx|ts|tsx)$' || true)
-  if [ -n "$JSTS_FILES" ] && [ -z "$linter" ]; then
-    if command -v eslint &>/dev/null || [ -f node_modules/.bin/eslint ]; then
-      linter="eslint"
-      lint_cmd="${node_modules/.bin/eslint:-eslint}"
-      [ -f node_modules/.bin/eslint ] && lint_cmd="node_modules/.bin/eslint"
-      lint_files="$JSTS_FILES"
+  if [ -n "$JSTS_FILES" ]; then
+    if [ -f node_modules/.bin/eslint ]; then
+      combined_output="${combined_output}$(run_linter "eslint" "node_modules/.bin/eslint" "$JSTS_FILES")\n"
+      found_any=true
+    elif command -v eslint &>/dev/null; then
+      combined_output="${combined_output}$(run_linter "eslint" "eslint" "$JSTS_FILES")\n"
+      found_any=true
     elif command -v biome &>/dev/null; then
-      linter="biome"
-      lint_cmd="biome check"
-      lint_files="$JSTS_FILES"
+      combined_output="${combined_output}$(run_linter "biome" "biome check" "$JSTS_FILES")\n"
+      found_any=true
     fi
   fi
 
-  # Check for Rust files
+  # Rust
   RS_FILES=$(echo "$files" | grep -E '\.rs$' || true)
-  if [ -n "$RS_FILES" ] && [ -z "$linter" ]; then
+  if [ -n "$RS_FILES" ]; then
     if command -v cargo &>/dev/null; then
-      linter="cargo-clippy"
-      lint_cmd="cargo clippy --message-format=short"
-      lint_files="" # cargo clippy doesn't take individual files
+      combined_output="${combined_output}$(run_linter "cargo-clippy" "cargo clippy --message-format=short" "")\n"
+      found_any=true
     fi
   fi
 
-  # Check for Go files
+  # Go
   GO_FILES=$(echo "$files" | grep -E '\.go$' || true)
-  if [ -n "$GO_FILES" ] && [ -z "$linter" ]; then
+  if [ -n "$GO_FILES" ]; then
     if command -v golangci-lint &>/dev/null; then
-      linter="golangci-lint"
-      lint_cmd="golangci-lint run"
-      lint_files="" # runs on package
+      combined_output="${combined_output}$(run_linter "golangci-lint" "golangci-lint run" "")\n"
+      found_any=true
     fi
   fi
 
-  # Check for Ruby files
+  # Ruby
   RB_FILES=$(echo "$files" | grep -E '\.rb$' || true)
-  if [ -n "$RB_FILES" ] && [ -z "$linter" ]; then
+  if [ -n "$RB_FILES" ]; then
     if command -v rubocop &>/dev/null; then
-      linter="rubocop"
-      lint_cmd="rubocop --format simple"
-      lint_files="$RB_FILES"
+      combined_output="${combined_output}$(run_linter "rubocop" "rubocop --format simple" "$RB_FILES")\n"
+      found_any=true
     fi
   fi
 
-  if [ -z "$linter" ]; then
+  if [ "$found_any" = false ]; then
     return 1
   fi
 
-  echo "LINTER:$linter" >&2
-
-  # Run linter
-  local full_output=""
-  if [ -n "$lint_files" ]; then
-    # Pass files as arguments
-    full_output=$(echo "$lint_files" | xargs $lint_cmd 2>&1 || true)
-  else
-    # Run without file args (cargo, golangci-lint)
-    full_output=$($lint_cmd 2>&1 || true)
-  fi
-
-  echo "$full_output"
+  printf '%b' "$combined_output"
   return 0
 }
 
