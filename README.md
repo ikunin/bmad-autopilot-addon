@@ -148,10 +148,26 @@ A 12-step workflow for taking a codebase from one stack to another. 4 subagent f
 ## Quick Start
 
 ```bash
-# 1. Install BMAD (if not already)
-npx bmad-method install --modules bmm --tools claude-code --yes
+# 1. Install BMAD with the core method and Test Architect module
+npx bmad-method install --modules bmm,tea --tools claude-code --yes
+```
 
-# 2. Install the add-on (interactive tool selection)
+This installs:
+- **BMM** (BMad Method) — the core development workflow with 34+ skills
+- **TEA** (Test Architect Enterprise) — risk-based test strategy, ATDD, CI quality gates, test framework scaffolding
+
+For interactive module selection (see all available modules):
+```bash
+npx bmad-method install
+```
+
+For multiple tools:
+```bash
+npx bmad-method install --modules bmm,tea --tools claude-code,cursor --yes
+```
+
+```bash
+# 2. Install the autopilot add-on (interactive tool selection)
 bash _bmad-addons/install.sh
 
 # Or specify tools directly:
@@ -163,6 +179,27 @@ bash _bmad-addons/install.sh --tools all
 # 3. Start the autopilot in your IDE
 /bmad-autopilot-on
 ```
+
+### BMAD Modules
+
+| Module | Code | Description |
+|--------|------|-------------|
+| **BMad Method** | `bmm` | Core development workflow — analysis, planning, implementation, review |
+| **Test Architect** | `tea` | Enterprise test strategy — ATDD, test design, CI setup, NFR assessment, traceability |
+
+The TEA module adds these skills to your toolkit:
+
+| Skill | Description |
+|-------|-------------|
+| `/bmad-testarch-test-design` | Risk-based test planning |
+| `/bmad-testarch-framework` | Initialize production-ready test framework (Playwright, Cypress) |
+| `/bmad-testarch-atdd` | Generate failing acceptance tests (TDD red phase) |
+| `/bmad-testarch-automate` | Expand test automation coverage |
+| `/bmad-testarch-ci` | Configure CI/CD quality pipeline with test execution |
+| `/bmad-testarch-nfr` | Non-functional requirements assessment (performance, security) |
+| `/bmad-testarch-test-review` | Quality audit with 0-100 scoring |
+| `/bmad-testarch-trace` | Coverage traceability matrix and gate decisions |
+| `/bmad-teach-me-testing` | Interactive testing education (7 sessions) |
 
 ## Supported Tools
 
