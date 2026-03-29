@@ -28,7 +28,7 @@ Placeholder resolution chain: sprint-status.yaml → story file → fallback val
 |-----|---------|-------------|
 | `staging.strategy` | `explicit` | Always explicit file names. Cannot be changed to `git add -A`. |
 | `staging.source` | `git-diff-primary` | Primary source: `git diff --name-only HEAD` |
-| `staging.cross_reference` | `story-file-list` | Cross-reference with story's File List section |
+| `staging.cross_reference` | `story-file-list` | Cross-reference changed files against the story's "File List" section. Warns on unexpected files (changed but not in File List) and missing files (in File List but not changed). |
 | `staging.max_file_size_mb` | `1` | Reject files larger than this with warning |
 
 ### Pre-Commit Checks
@@ -122,9 +122,20 @@ Auto-detection priority: explicit config > CLI detection > remote URL regex.
 For self-hosted instances:
 ```yaml
 platform:
-  provider: gitlab
-  # base_url: https://gitlab.example.com  # future support
+  provider: gitea
+  base_url: https://git.example.com
 ```
+
+### Authentication Tokens
+
+Platforms with API fallback require environment variables when their CLI is not installed:
+
+| Platform | Env Var | Required When |
+|----------|---------|---------------|
+| Bitbucket | `BITBUCKET_TOKEN` | `bb` CLI not installed |
+| Gitea | `GITEA_TOKEN` | `tea` CLI not installed (also needs `base_url` in config) |
+
+GitHub and GitLab require their CLIs (`gh`, `glab`). No API fallback is available.
 
 ## Multi-Agent Configuration (`modules/ma/config.yaml`)
 

@@ -138,7 +138,7 @@ For linters that don't take individual files (like `dotnet format` or `cargo cli
 | Swift | `.swift` | swiftlint | `brew install swiftlint` |
 | PL/SQL | `.sql`, `.pls`, `.plb`, `.pks`, `.pkb` | sqlfluff | `pip install sqlfluff` |
 | Kotlin | `.kt` | ktlint, detekt | `brew install ktlint` |
-| PHP | `.php` | phpstan, phpcs | `composer require phpstan/phpstan` |
+| PHP | `.php` | phpstan, phpcs | `composer require --dev phpstan/phpstan squizlabs/php_codesniffer` |
 
 ### Notes on Specific Languages
 

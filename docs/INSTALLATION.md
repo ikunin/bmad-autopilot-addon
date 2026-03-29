@@ -130,9 +130,15 @@ bash _bmad-addons/uninstall.sh
 ```
 
 This will:
-1. Remove all add-on skills from `.claude/skills/`
-2. Clean up worktrees (skipping those with uncommitted changes)
-3. Remove `.autopilot.lock` and backup directory
+1. Remove all add-on skills from all tool directories
+2. Remove system prompt files (AGENTS.md, tool-specific rules)
+3. Clean up worktrees (skipping those with uncommitted changes)
+4. Remove `.autopilot.lock` and backup directories
+
+Use `--force` to remove dirty worktrees without prompting:
+```bash
+bash _bmad-addons/uninstall.sh --force
+```
 
 BMAD's own skills are never affected.
 
@@ -152,9 +158,39 @@ brew install glab
 glab auth login
 ```
 
+### Bitbucket
+
+```bash
+# Option 1: Bitbucket CLI
+pip install bitbucket-cli
+bb auth login
+
+# Option 2: API token (no CLI needed)
+export BITBUCKET_TOKEN="your_app_password_or_token"
+```
+
+For Bitbucket Cloud (bitbucket.org), the remote URL is auto-detected. For Bitbucket Server (self-hosted), set `provider: bitbucket` in config.
+
+### Gitea
+
+```bash
+# Option 1: tea CLI (https://gitea.com/gitea/tea)
+brew install tea   # or: go install code.gitea.io/tea@latest
+tea login add
+
+# Option 2: API token (no CLI needed)
+export GITEA_TOKEN="your_token"
+# Also set in _bmad-addons/modules/git/config.yaml:
+#   platform:
+#     provider: gitea
+#     base_url: https://git.example.com
+```
+
+Gitea is always self-hosted — auto-detection requires explicit `provider: gitea` in config.
+
 ### No CLI
 
-The add-on works without a platform CLI. Push and PR creation are skipped, and manual commands are printed instead.
+The add-on works without any platform CLI (`git_only` mode). Git branches are created and pushed normally, but PR/MR creation is skipped. Manual instructions are printed showing the branch and base for you to create the PR in the web UI.
 
 ## Troubleshooting
 
@@ -191,3 +227,16 @@ bash _bmad-addons/install.sh --tools claude-code
 Not `./install.sh` (which may fail if the script has CRLF line endings or `/bin/bash` doesn't resolve).
 
 The repo includes `.gitattributes` that forces LF line endings for all scripts and YAML files, preventing CRLF issues on clone.
+
+### Wrong platform detected
+
+If the autopilot creates PRs on the wrong platform:
+
+1. Check which CLIs are installed: `which gh glab bb tea`
+2. If multiple CLIs are present, the remote URL is used as tiebreaker
+3. Override explicitly in `_bmad-addons/modules/git/config.yaml`:
+   ```yaml
+   platform:
+     provider: github  # or gitlab, bitbucket, gitea, git_only
+   ```
+4. For self-hosted instances, also set `base_url` (Gitea) or configure the CLI to point to your server

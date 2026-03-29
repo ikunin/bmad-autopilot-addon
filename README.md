@@ -232,7 +232,11 @@ bash _bmad-addons/install.sh --tools claude-code,cursor,gemini-cli
 | Bitbucket | `bb` | `bitbucket.org` | Yes (`BITBUCKET_TOKEN`) |
 | Gitea | `tea` | Explicit config | Yes (`GITEA_TOKEN` + `base_url`) |
 
-No CLI installed? The addon falls back to `git_only` mode — push works, PRs are skipped with manual instructions printed.
+No CLI installed? The addon falls back to **git_only mode**:
+- Branches are created and pushed normally
+- PR/MR creation is skipped — manual instructions are printed with the branch and base
+- All other features (worktrees, commits, linting, code review) work as usual
+- Install a platform CLI to enable automatic PR creation
 
 ## Supported Languages (Linting)
 

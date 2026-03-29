@@ -114,6 +114,8 @@ Both live in `_bmad-output/implementation-artifacts/`. The autopilot reads `spri
                  atomic write (tmp + mv), never touches sprint-status
 ```
 
+For the `git-status.yaml` schema and field reference, see [Configuration Reference](CONFIGURATION.md#git-status-file-git-statusyaml).
+
 ### Lock File
 
 Prevents concurrent autopilot sessions. Uses epoch timestamp + UUID (no PID — unreliable in Claude Code). All time math in Bash, not the LLM.

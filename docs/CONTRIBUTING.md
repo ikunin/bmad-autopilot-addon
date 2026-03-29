@@ -57,6 +57,14 @@ All scripts require **Bash 3.2+** (stock macOS). They also work on:
 
 No associative arrays (Bash 4+ only). No `set -u` (some variables are intentionally unset). Use `#!/bin/bash` shebang. The repo has `.gitattributes` enforcing LF line endings for scripts.
 
+## Multi-Tool Compatibility
+
+Skills must work across all 9 supported tools. Guidelines:
+- Don't assume `.claude/` directory structure — other tools use `.cursor/`, `.windsurf/`, etc.
+- Don't invoke the `Skill` tool from subagent prompts (subagents can't use it)
+- System prompt changes in `templates/agent-rules.md` must keep the `<!-- BEGIN/END:bmad-workflow-rules -->` markers for idempotent install/uninstall
+- Don't rename existing config keys (breaks user customizations) — add new keys instead
+
 ## Exit Code Convention
 
 All scripts should follow this convention:

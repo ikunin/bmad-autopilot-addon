@@ -2,7 +2,7 @@
 
 ## System Prompt Enforcement
 
-After installation, every AI agent session starts with BMAD awareness. The installer creates system prompt files (e.g., `CLAUDE.md` + `AGENTS.md` for Claude Code) that tell the agent:
+After installation, every AI agent session starts with BMAD awareness. The installer creates system prompt files that tell the agent:
 
 - This project uses the BMAD Method
 - The 7-step story sequence is **mandatory** — no skipping steps
@@ -11,7 +11,17 @@ After installation, every AI agent session starts with BMAD awareness. The insta
 
 This means you don't need to tell the agent about BMAD — it already knows. If you ask the agent to "implement feature X", it will follow the BMAD story sequence automatically.
 
-The full skill reference lives at `_bmad-addons/BMAD.md`. The enforcement rules are in `_bmad-addons/templates/agent-rules.md`.
+### How it works per tool
+
+**Claude Code** uses a two-file pattern:
+- `CLAUDE.md` contains a single line: `@AGENTS.md` (an include directive)
+- `AGENTS.md` contains the BMAD enforcement rules (the 7-step sequence, git rules, skill reference)
+
+**Cursor, Roo, Kiro, Trae** get a dedicated `bmad.md` file in their rules directory (e.g., `.cursor/rules/bmad.md`).
+
+**Windsurf, Cline, Gemini CLI, GitHub Copilot** get the enforcement block appended to their shared system prompt file with markers for safe update/removal.
+
+All tools reference `_bmad-addons/BMAD.md` for the full skill catalog. The enforcement rules are in `_bmad-addons/templates/agent-rules.md`.
 
 ---
 
@@ -57,20 +67,38 @@ This produces a status report with git information and releases the lock.
 
 ### Session Management
 
-The autopilot checkpoints after every 3 stories (configurable). It saves state to `autopilot-state.yaml` and asks you to start a new Claude Code session:
+The autopilot checkpoints after every 3 stories (configurable). It saves state to `_bmad-output/implementation-artifacts/autopilot-state.yaml` and asks you to start a new session:
 
 ```
 /bmad-autopilot-on    # resumes exactly where it left off
 ```
 
+The state file tracks:
+- Current story and BMAD step in progress
+- Stories completed this session
+- Next skill to invoke
+- Git platform detected
+- Whether a worktree is active
+
+This file is deleted automatically when the sprint completes.
+
+### Submodules
+
+If your project uses git submodules (`.gitmodules` present), the autopilot automatically initializes them when creating worktrees. Initialization times out after 30 seconds (configurable via `worktree.submodule_timeout` in config). If timeout occurs (e.g., auth required), the autopilot warns and continues without submodules.
+
 ### Crash Recovery
 
 If a session crashes, the next `/bmad-autopilot-on` will:
-- Detect and remove stale locks (>30 min old)
-- Find orphaned worktrees and classify them:
-  - **Committed work**: pushes the branch and creates PR
-  - **No commits**: removes the stale worktree
-  - **Dirty**: warns you and asks how to proceed
+
+1. **Remove stale locks** — locks older than 30 minutes are auto-removed
+2. **Health check worktrees** — scans `.claude/worktrees/` for orphaned directories
+3. **Classify each worktree**:
+   - **COMMITTED** — branch has commits beyond main. Pushed and PR created automatically.
+   - **CLEAN_DONE** — story is marked done, worktree is clean. Removed.
+   - **STALE** — no commits beyond main. Work was lost. Removed.
+   - **DIRTY** — uncommitted changes. You are prompted: stash, commit, or discard.
+   - **ORPHAN** — worktree exists but branch was deleted. Removed.
+4. **Resume** — reads `autopilot-state.yaml` and continues from the saved step
 
 ---
 
