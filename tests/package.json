@@ -1,0 +1,18 @@
+{
+  "name": "bmad-autopilot-addon-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:scripts": "bats scripts/*.bats",
+    "test:e2e:greenfield": "vitest run e2e/greenfield.test.ts",
+    "test:e2e:brownfield": "vitest run e2e/brownfield.test.ts",
+    "test:e2e": "vitest run e2e/",
+    "test": "bats scripts/*.bats && vitest run e2e/"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "yaml": "^2.7.0"
+  }
+}

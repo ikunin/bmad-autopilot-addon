@@ -112,12 +112,21 @@ ${STORY_BLOCK}
 EOF
 elif echo "$EXISTING" | grep -q "^  ${STORY}:"; then
   # Replace existing story block
-  awk -v story="  ${STORY}:" -v block="$STORY_BLOCK" '
-    $0 == story { skip=1; print block; next }
+  # Write replacement block to temp file (awk -v can't handle embedded newlines on macOS)
+  BLOCK_FILE="${GIT_STATUS_FILE}.block"
+  printf '%s\n' "$STORY_BLOCK" > "$BLOCK_FILE"
+  awk -v story="  ${STORY}:" -v blockfile="$BLOCK_FILE" '
+    $0 == story {
+      skip=1
+      while ((getline line < blockfile) > 0) print line
+      close(blockfile)
+      next
+    }
     skip && /^  [^ ]/ { skip=0 }
     skip { next }
     { print }
   ' "$GIT_STATUS_FILE" > "$TMP_FILE"
+  rm -f "$BLOCK_FILE"
 else
   # Append new story
   printf '%s\n%s\n' "$EXISTING" "$STORY_BLOCK" > "$TMP_FILE"

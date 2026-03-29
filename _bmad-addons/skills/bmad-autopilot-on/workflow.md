@@ -442,6 +442,24 @@ NEVER wait for user at a menu.
   </action>
 </check>
 
+<!-- GIT: Commit planning artifacts to main after planning skills -->
+<check if="{{git_enabled}} AND {{completed_skill}} is a planning skill (bmad-create-prd, bmad-create-architecture, bmad-create-ux-design, bmad-create-epics-and-stories, bmad-sprint-planning, bmad-check-implementation-readiness, bmad-create-story)">
+  <action>**Commit planning artifacts to main** — keep track of all planning decisions in git.
+  Stage all changed artifacts:
+  ```
+  git add _bmad-output/planning-artifacts/ _bmad-output/implementation-artifacts/ _bmad-output/stories/ 2>/dev/null || true
+  ```
+  If there are staged changes, commit:
+  ```
+  git diff --cached --quiet || git commit -m "docs: {{completed_skill}} artifacts"
+  ```
+  Push to remote if possible:
+  ```
+  git push origin {{base_branch}} 2>/dev/null || true
+  ```
+  </action>
+</check>
+
 <goto step="5">Read skill output for next step</goto>
 
 </step>
@@ -549,6 +567,18 @@ Apply ALL patch and bugfix findings automatically. For each:
   <action>**Write git status** to addon's own file (NEVER modify sprint-status.yaml):
   `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{git_status_file}" --branch "story/{{branch_name}}" --commit "{{story_commit}}" --patch-commits "{{patch_commits_csv}}" --push-status "{{push_status}}" --pr-url "{{pr_url}}" --lint-result "{{lint_result}}" --worktree "{{project_root}}/.claude/worktrees/{{current_story}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
   This writes to `git-status.yaml` (addon-owned). Sprint-status.yaml is BMAD-owned and read-only.
+  </action>
+
+  <action>**Merge story branch to main** — integrate completed story into the base branch.
+  ```
+  git checkout {{base_branch}}
+  git merge story/{{branch_name}} --no-edit
+  git push origin {{base_branch}} 2>/dev/null || true
+  ```
+  If merge fails (conflict):
+  - Try `git merge --abort`
+  - Log warning: "Could not auto-merge story/{{branch_name}} to {{base_branch}} — manual merge required"
+  - Continue without halting (the story branch is pushed and PR exists)
   </action>
 </check>
 
@@ -672,6 +702,29 @@ No work will be repeated.
 
 <action>Verify: all stories `done`, all retrospectives `done` in `{status_file}`</action>
 <action>Run full test suite — report `N/N passed`</action>
+
+<!-- Generate project documentation after sprint completion -->
+<action>**Generate documentation** — create or update project README and docs.
+Invoke `bmad-document-project` skill to auto-generate documentation from the completed implementation.
+If the skill is not available or fails, generate a minimal README.md:
+- Project name and description (from product brief / PRD)
+- How to install (`npm install` / `pip install` / etc.)
+- How to run (`npm start` / the launch command)
+- How to test (`npm test`)
+- Architecture overview (from architecture doc if it exists)
+</action>
+
+<!-- GIT: Commit documentation and final artifacts to main -->
+<check if="{{git_enabled}}">
+  <action>**Commit final artifacts and documentation to main**:
+  ```
+  git checkout {{base_branch}}
+  git add _bmad-output/ README.md docs/ 2>/dev/null || true
+  git diff --cached --quiet || git commit -m "docs: project documentation and final artifacts"
+  git push origin {{base_branch}} 2>/dev/null || true
+  ```
+  </action>
+</check>
 
 <action>Read `{status_file}` and collect:
   - All completed stories grouped by epic, with their story titles
