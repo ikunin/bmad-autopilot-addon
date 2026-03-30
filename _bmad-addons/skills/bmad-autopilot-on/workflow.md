@@ -624,6 +624,17 @@ Apply ALL patch and bugfix findings automatically. For each:
     <critical>**DO NOT merge** — a PR was created at {{pr_url}}. Merging requires PR approval. The branch will be merged through the PR workflow on the platform.</critical>
     <action>Log: "Story {{current_story}} pushed — PR awaiting review: {{pr_url}}"</action>
   </check>
+
+  <!-- Commit all implementation artifacts and status updates to main after each story -->
+  <action>**Commit story completion artifacts to main** — ensure main always reflects current sprint state.
+  ```
+  git checkout {{base_branch}}
+  git add _bmad-output/implementation-artifacts/ _bmad-output/stories/ _bmad-output/planning-artifacts/ 2>/dev/null || true
+  git diff --cached --quiet || git commit -m "docs: story {{current_story}} done — {{test_count}} tests{{#if pr_url}}, PR: {{pr_url}}{{/if}}"
+  git push origin {{base_branch}} 2>/dev/null || true
+  ```
+  This ensures sprint-status.yaml, git-status.yaml, story files, and any updated artifacts are on main even when story code is on a PR branch.
+  </action>
 </check>
 
 <check if="NOT {{git_enabled}} OR NOT was in worktree">
