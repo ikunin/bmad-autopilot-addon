@@ -305,6 +305,15 @@ Resolve:
 
 <check if="{{next_skill}} is a per-story skill (bmad-dev-story, bmad-code-review, bmad-create-story)">
   <action>Set `{{current_story}}` = first story in `{status_file}` with status `ready-for-dev` or `in-progress`</action>
+
+  <critical>**Validate story key format** — the key MUST follow the pattern `{epic}-{story}-{title-kebab}` (e.g., `1-2-user-authentication`), NOT just `{epic}-{story}` (e.g., `1-2`).
+  If `{{current_story}}` matches only `^\d+-\d+$` (numeric only, no title):
+  - Find the story file in `{implementation_artifacts}` matching `{{current_story}}-*.md` or `story-{{current_story}}*.md`
+  - If found: extract the full kebab-case name from the filename and update `{{current_story}}`
+  - If not found: read the epics file, find the matching story title, convert to kebab-case, and update `{{current_story}}`
+  - Update the sprint-status.yaml key to use the full name (rename the key in development_status)
+  A short key like `1-1` produces branches named `story/1-1` and PRs with no description — the title is essential for human-readable git history.</critical>
+
   <action>Create per-story step tasks if not already created</action>
 </check>
 
