@@ -425,6 +425,19 @@ NEVER wait for user at a menu.
     </action>
   </check>
 
+  <!-- Safety net: enforce task checkboxes if dev-story forgot to mark them -->
+  <action>**Enforce task checkboxes** — read the story file for `{{current_story}}` and count unchecked `[ ]` vs checked `[x]` tasks in the Tasks/Subtasks section.
+  If unchecked tasks remain BUT all tests passed during dev-story:
+  - Replace every `- [ ]` with `- [x]` in the Tasks/Subtasks section of the story file
+  - Commit the change: `git add <story-file> && git commit -m "chore: mark completed task checkboxes for {{current_story}}"`
+  - Log: "Enforced task checkboxes: marked N tasks as [x] (dev agent skipped bookkeeping)"
+  If tests did NOT all pass and unchecked tasks remain:
+  - Do NOT mark checkboxes — tasks may genuinely be incomplete
+  - Log warning: "Unchecked tasks remain and tests are failing — skipping checkbox enforcement"
+  If no unchecked tasks exist:
+  - No action needed — dev agent marked them correctly
+  </action>
+
   <action>Set `{{next_skill}}` = `bmad-code-review` (mandatory after dev-story)</action>
   <goto step="8">Save state and continue</goto>
 </check>
