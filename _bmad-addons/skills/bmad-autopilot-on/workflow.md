@@ -148,7 +148,8 @@ Resolve:
   - CLEAN_DONE: `git worktree remove .claude/worktrees/<name>` + `git worktree prune`
   - COMMITTED: log "Recoverable work found for <name> — will push via git -C"
     Push the branch: `git -C .claude/worktrees/<name> push -u origin <branch> 2>&1`
-    Then create PR via: `bash {{project_root}}/_bmad-addons/scripts/create-pr.sh ...`
+    If `{{create_pr}}` is true AND platform != git_only: create PR via `bash {{project_root}}/_bmad-addons/scripts/create-pr.sh ...`
+    If `{{create_pr}}` is false OR platform is git_only: merge directly — `git checkout -B {{base_branch}} origin/{{base_branch}} && git merge <branch> --no-edit && git push origin {{base_branch}}`
     Then remove worktree.
   - STALE: `git worktree remove .claude/worktrees/<name> --force` + prune
   - DIRTY: warn user, ask how to proceed (stash/commit/discard)
@@ -342,9 +343,11 @@ Resolve:
 
   If an unmerged previous story branch exists:
   - Branch from it: `git checkout origin/story/<prev-branch>`
+  - Set `{{pr_base}}` = `story/<prev-branch>` (PR should target previous story, not main)
   - Log: "Branching from story/<prev-branch> (PR pending merge)"
   Otherwise:
   - Branch from base: `git checkout origin/{{base_branch}}`
+  - Set `{{pr_base}}` = `{{base_branch}}`
 
   (Detached HEAD is fine — EnterWorktree branches from HEAD)
   </action>
@@ -433,20 +436,20 @@ NEVER wait for user at a menu.
     Output: commit SHA. Set `{{story_commit}}` = output.
     Warnings (secrets, large files) printed to stderr — review but don't halt unless user says to.
     </action>
-  </check>
 
-  <!-- Safety net: enforce task checkboxes if dev-story forgot to mark them -->
-  <action>**Enforce task checkboxes** — read the story file for `{{current_story}}` and count unchecked `[ ]` vs checked `[x]` tasks in the Tasks/Subtasks section.
-  If unchecked tasks remain BUT all tests passed during dev-story:
-  - Replace every `- [ ]` with `- [x]` in the Tasks/Subtasks section of the story file
-  - Commit the change: `git add <story-file> && git commit -m "chore: mark completed task checkboxes for {{current_story}}"`
-  - Log: "Enforced task checkboxes: marked N tasks as [x] (dev agent skipped bookkeeping)"
-  If tests did NOT all pass and unchecked tasks remain:
-  - Do NOT mark checkboxes — tasks may genuinely be incomplete
-  - Log warning: "Unchecked tasks remain and tests are failing — skipping checkbox enforcement"
-  If no unchecked tasks exist:
-  - No action needed — dev agent marked them correctly
-  </action>
+    <!-- Safety net: enforce task checkboxes if dev-story forgot to mark them -->
+    <action>**Enforce task checkboxes** — read the story file for `{{current_story}}` and count unchecked `[ ]` vs checked `[x]` tasks in the Tasks/Subtasks section.
+    If unchecked tasks remain BUT all tests passed during dev-story:
+    - Replace every `- [ ]` with `- [x]` in the Tasks/Subtasks section of the story file
+    - Commit the change: `git add <story-file> && git commit -m "chore: mark completed task checkboxes for {{current_story}}"`
+    - Log: "Enforced task checkboxes: marked N tasks as [x] (dev agent skipped bookkeeping)"
+    If tests did NOT all pass and unchecked tasks remain:
+    - Do NOT mark checkboxes — tasks may genuinely be incomplete
+    - Log warning: "Unchecked tasks remain and tests are failing — skipping checkbox enforcement"
+    If no unchecked tasks exist:
+    - No action needed — dev agent marked them correctly
+    </action>
+  </check>
 
   <action>Set `{{next_skill}}` = `bmad-code-review` (mandatory after dev-story)</action>
   <goto step="8">Save state and continue</goto>
@@ -593,7 +596,7 @@ Apply ALL patch and bugfix findings automatically. For each:
      - `{lint-result}` → `{{lint_result}}`
      - `{test-result}` → from last test run output
      - `{patch-count}` → number of patch commits
-  3. Run: `bash {{project_root}}/_bmad-addons/scripts/create-pr.sh --platform {{platform}} --branch story/{{branch_name}} --base {{base_branch}} --title "{{story-title}} ({{current_story}})" --body "<filled template>"`
+  3. Run: `bash {{project_root}}/_bmad-addons/scripts/create-pr.sh --platform {{platform}} --branch story/{{branch_name}} --base {{pr_base}} --title "{{story-title}} ({{current_story}})" --body "<filled template>"`
   4. Output: PR URL or "SKIPPED". Set `{{pr_url}}` = output.
   If creation fails → log warning, set `{{pr_url}}` = null, continue.
   </action>
@@ -609,10 +612,10 @@ Apply ALL patch and bugfix findings automatically. For each:
   This writes to `git-status.yaml` (addon-owned). Sprint-status.yaml is BMAD-owned and read-only.
   </action>
 
-  <check if="{{platform}} is git_only OR {{pr_url}} is null or SKIPPED">
+  <check if="{{create_pr}} is false OR {{platform}} is git_only OR {{pr_url}} is null or SKIPPED">
     <action>**Merge story branch to main** — no PR workflow, merge locally.
     ```
-    git checkout {{base_branch}}
+    git checkout -B {{base_branch}} origin/{{base_branch}}
     git merge story/{{branch_name}} --no-edit
     git push origin {{base_branch}} 2>/dev/null || true
     ```
@@ -630,7 +633,7 @@ Apply ALL patch and bugfix findings automatically. For each:
   <!-- Commit all implementation artifacts and status updates to main after each story -->
   <action>**Commit story completion artifacts to main** — ensure main always reflects current sprint state.
   ```
-  git checkout {{base_branch}}
+  git checkout -B {{base_branch}} origin/{{base_branch}}
   git add _bmad-output/implementation-artifacts/ _bmad-output/stories/ _bmad-output/planning-artifacts/ 2>/dev/null || true
   git diff --cached --quiet || git commit -m "docs: story {{current_story}} done — {{test_count}} tests{{#if pr_url}}, PR: {{pr_url}}{{/if}}"
   git push origin {{base_branch}} 2>/dev/null || true
@@ -639,9 +642,8 @@ Apply ALL patch and bugfix findings automatically. For each:
   </action>
 </check>
 
-<check if="NOT {{git_enabled}} OR NOT was in worktree">
-  <action>Update `{status_file}`: `{{current_story}}` → `done`</action>
-</check>
+<!-- Always update sprint status regardless of git mode -->
+<action>Update `{status_file}`: `{{current_story}}` → `done`</action>
 
 <action>Mark all remaining tasks for this story → `completed`</action>
 <action>Increment `{{session_stories_done}}` by 1</action>
@@ -775,7 +777,7 @@ If the skill is not available or fails, generate a minimal README.md:
 <check if="{{git_enabled}}">
   <action>**Commit final artifacts and documentation to main**:
   ```
-  git checkout {{base_branch}}
+  git checkout -B {{base_branch}} origin/{{base_branch}}
   git add _bmad-output/ README.md docs/ 2>/dev/null || true
   git diff --cached --quiet || git commit -m "docs: project documentation and final artifacts"
   git push origin {{base_branch}} 2>/dev/null || true
