@@ -176,6 +176,7 @@ Resolve:
     - `{{next_skill}}` — next skill recommended at save time
     - `{{session_stories_done}}` = 0 (reset counter for new session)
     - `{{in_worktree}}` — whether we were in a worktree when session ended
+    - `{{pr_base}}` — PR target branch (previous story branch or base_branch)
   </action>
   <action>Read `{status_file}` — note all stories already `done`</action>
   <action>Scan TaskList for orphaned in_progress tasks from the previous session.
@@ -238,6 +239,7 @@ Resolve:
   git_enabled: {{git_enabled}}
   platform: {{platform}}
   in_worktree: false
+  pr_base: {{base_branch}}
   ```
   </action>
   <action>Report to user:
@@ -391,6 +393,7 @@ completed_skill: {previous skill}
 next_skill: {{next_skill}}
 session_stories_done: {{session_stories_done}}
 in_worktree: {{in_worktree}}
+pr_base: {{pr_base}}
 ```
 </action>
 
@@ -709,6 +712,7 @@ session_stories_done: {{session_stories_done}}
 git_enabled: {{git_enabled}}
 platform: {{platform}}
 in_worktree: {{in_worktree}}
+pr_base: {{pr_base}}
 ```
 </action>
 
