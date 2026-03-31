@@ -548,6 +548,13 @@ Apply ALL patch and bugfix findings automatically. For each:
 <action>Log: "All patches applied — {{N}}/{{N}} passing"</action>
 <action>Mark "[story] Apply patches" → `completed`</action>
 
+<!-- Re-run code review to sync sprint-status.yaml — patches resolved all findings, so code-review will now set story to done -->
+<action>Re-invoke `bmad-code-review` using the Skill tool.
+The review layers already ran — this pass will see zero unresolved findings and set the story status to `done` in sprint-status.yaml (code-review owns that transition per step-04-present.md:92).
+Instruct: "Re-verify code review for story {{current_story}} — all patch findings have been applied. Update story status accordingly."
+</action>
+<action>Mark task "code-review-verify" → `completed`</action>
+
 <goto step="7">Mark story done</goto>
 
 </step>
@@ -599,11 +606,6 @@ Apply ALL patch and bugfix findings automatically. For each:
   Set `{{in_worktree}}` = false.
   </action>
 
-  <action>**Write git status** to addon's own file (NEVER modify sprint-status.yaml):
-  `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{git_status_file}" --branch "{{branch_prefix}}{{branch_name}}" --commit "{{story_commit}}" --patch-commits "{{patch_commits_csv}}" --push-status "{{push_status}}" --pr-url "{{pr_url}}" --lint-result "{{lint_result}}" --worktree "{{project_root}}/.claude/worktrees/{{current_story}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
-  This writes to `git-status.yaml` (addon-owned). Sprint-status.yaml is BMAD-owned — updated by BMAD skills only.
-  </action>
-
   <check if="{{create_pr}} is false OR {{platform}} is git_only OR {{pr_url}} is null or SKIPPED">
     <action>**Merge story branch to main** — no PR workflow, merge locally.
     ```
@@ -626,6 +628,16 @@ Apply ALL patch and bugfix findings automatically. For each:
   <action>**Commit story completion artifacts to main** — ensure main always reflects current sprint state.
   ```
   git checkout -B {{base_branch}} origin/{{base_branch}}
+  ```
+  </action>
+
+  <action>**Write git status** to addon's own file (NEVER modify sprint-status.yaml) — runs AFTER checkout to base branch so the file persists in the working tree for the commit below:
+  `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{git_status_file}" --branch "{{branch_prefix}}{{branch_name}}" --commit "{{story_commit}}" --patch-commits "{{patch_commits_csv}}" --push-status "{{push_status}}" --pr-url "{{pr_url}}" --lint-result "{{lint_result}}" --worktree "{{project_root}}/.claude/worktrees/{{current_story}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
+  This writes to `git-status.yaml` (addon-owned). Sprint-status.yaml is BMAD-owned — updated by BMAD skills only.
+  </action>
+
+  <action>**Stage and commit artifacts**:
+  ```
   git add _bmad-output/implementation-artifacts/ _bmad-output/stories/ _bmad-output/planning-artifacts/ 2>/dev/null || true
   git diff --cached --quiet || git commit -m "docs: story {{current_story}} done — {{test_count}} tests{{#if pr_url}}, PR: {{pr_url}}{{/if}}"
   git push origin {{base_branch}} 2>/dev/null || true
@@ -800,6 +812,16 @@ If the skill is not available or fails, generate a minimal README.md:
   3. Check `pyproject.toml`, `package.json`, or `setup.py` for scripts
   Record as `{{launch_cmd}}`
 </action>
+
+<!-- GIT: Final worktree cleanup — safety net for any worktrees not cleaned during epic completion -->
+<check if="{{git_enabled}}">
+  <action>**Cleanup all remaining worktrees**:
+  Run: `git worktree list --porcelain`
+  For each worktree that is NOT the main worktree:
+    `git worktree remove <path> --force 2>/dev/null || true`
+  Then: `git worktree prune`
+  </action>
+</check>
 
 <!-- GIT: Release lock -->
 <check if="{{git_enabled}}">

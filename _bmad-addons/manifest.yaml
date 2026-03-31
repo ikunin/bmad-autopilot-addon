@@ -11,12 +11,9 @@ addon:
       enabled: true
       config: modules/ma/config.yaml
   installed_skills:
-    # v1.0 — Git workflow
     - bmad-autopilot-on
     - bmad-autopilot-off
-    # v1.1 — Parallel code review
     - bmad-ma-code-review
-    # v2.0 — Brownfield intelligence
     - bmad-ma-codebase-map
     - bmad-ma-assess
     - bmad-ma-reverse-architect
