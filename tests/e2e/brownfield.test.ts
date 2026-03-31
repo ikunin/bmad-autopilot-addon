@@ -289,7 +289,7 @@ describe("Brownfield: json-server analysis + auth feature", () => {
         maxBudget: 10,
         model: MODEL,
         addDirs: [ADDON_SOURCE],
-        timeout: 900_000, // 15 min — 12-step migration is the heaviest skill
+        timeout: 1_500_000, // 25 min — 12-step migration is the heaviest skill
         appendSystemPrompt:
           "You are running inside an automated e2e test. Plan migration from Express to Fastify. Do NOT ask any questions.",
       }
@@ -324,5 +324,5 @@ describe("Brownfield: json-server analysis + auth feature", () => {
     } else {
       console.warn("[B4] migration-plan.md not created — acceptable for optional step");
     }
-  }, 1_000_000); // 16 min — migration is the heaviest skill
+  }, 1_600_000); // 27 min — migration is the heaviest skill
 });

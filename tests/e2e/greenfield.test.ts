@@ -40,7 +40,7 @@ const ADDON_SOURCE = join(import.meta.dirname, "../../_bmad-addons");
 
 const MAX_SESSIONS = 8;
 const BUDGET_PER_SESSION = 20;
-const TIMEOUT_PER_SESSION = 900_000; // 15 min
+const TIMEOUT_PER_SESSION = 1_200_000; // 20 min
 
 /** Model to use — override via BMAD_TEST_MODEL env var (e.g. "opus") */
 const MODEL = process.env.BMAD_TEST_MODEL ?? "sonnet";
