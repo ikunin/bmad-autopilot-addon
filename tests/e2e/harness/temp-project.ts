@@ -56,6 +56,7 @@ export function createTempProject(options: TempProjectOptions = {}): TempProject
   exec("git init --initial-branch=main", dir);
   exec('git config user.email "test@bmad-e2e.com"', dir);
   exec('git config user.name "BMAD E2E Test"', dir);
+  exec("git config commit.gpgsign false", dir);
   exec('git commit --allow-empty -m "initial commit"', dir);
 
   // Set up remote

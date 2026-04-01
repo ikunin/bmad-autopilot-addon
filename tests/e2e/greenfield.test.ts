@@ -45,8 +45,8 @@ const TIMEOUT_PER_SESSION = 1_200_000; // 20 min
 /** Model to use — override via BMAD_TEST_MODEL env var (e.g. "opus") */
 const MODEL = process.env.BMAD_TEST_MODEL ?? "sonnet";
 
-/** Remote URL for push testing — override via env to avoid using a personal repo */
-const REMOTE_URL = process.env.BMAD_TEST_REMOTE_URL ?? "git@github.com:ikunin/test-tictactoe.git";
+/** Remote URL for push testing — override via env; falls back to local bare remote if unset */
+const REMOTE_URL = process.env.BMAD_TEST_REMOTE_URL ?? "";
 
 let project: TempProject;
 
@@ -169,10 +169,10 @@ function getTestCount(dir: string): { files: number; tests: number; error?: stri
 describe("Greenfield: Tic Tac Toe via BMAD Autopilot", () => {
   beforeAll(() => {
     project = createTempProject({
-      remoteUrl: REMOTE_URL,
+      ...(REMOTE_URL ? { remoteUrl: REMOTE_URL } : { withRemote: true }),
       installBmadCore: true,
       installAddon: true,
-      platform: "github",
+      platform: REMOTE_URL ? "github" : "git_only",
     });
 
     placeFixture(
