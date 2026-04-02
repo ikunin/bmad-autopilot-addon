@@ -77,7 +77,7 @@ teardown() {
     --story "2-1" \
     --git-status-file "git-status.yaml" \
     --branch "story/2-1" \
-    --worktree ".claude/worktrees/2-1" \
+    --worktree ".worktrees/2-1" \
     --commit "abc123def456" \
     --patch-commits "def789,ghi012" \
     --push-status "pushed" \

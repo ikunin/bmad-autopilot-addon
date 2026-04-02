@@ -164,7 +164,7 @@ if [ "$total_removed" -eq 0 ]; then
 fi
 
 # --- 2. Clean up worktrees (check dirty first) ---
-WORKTREES_DIR="$PROJECT_ROOT/.claude/worktrees"
+WORKTREES_DIR="$PROJECT_ROOT/.worktrees"
 if [ -d "$WORKTREES_DIR" ]; then
   echo ""
   echo "Cleaning worktrees..."

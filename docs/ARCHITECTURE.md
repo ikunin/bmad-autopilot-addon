@@ -77,22 +77,22 @@ _bmad-addons/
 - **Own-file tools** (Cursor, Roo, Kiro, Trae): dedicated `bmad.md` in the tool's rules directory
 - **Append tools** (Windsurf, Cline, Gemini CLI, Copilot): rules block appended to shared system prompt file
 
-### EnterWorktree / ExitWorktree
+### Worktree Isolation
 
-Claude Code's `cd` command does NOT persist across tool calls. The only way to change the working directory for all tools (including the Skill tool) is via `EnterWorktree` and `ExitWorktree`.
+Each story gets its own git worktree at `.worktrees/<story-key>/`, created via standard `git worktree add` commands. This keeps story work isolated from `main` and works with **any coding agent** (Claude Code, Cursor, Gemini CLI, etc.).
 
 ```
-EnterWorktree(name: "story-key")
-  → Creates .claude/worktrees/story-key/
+git worktree add .worktrees/story-key -b story/story-key
+  → Creates .worktrees/story-key/
   → New branch from HEAD
-  → ALL tools now operate in this directory
+  → Agent operates in this directory via cd
 
-ExitWorktree(action: "keep")
+cd <project-root>
   → Returns to original project root
-  → Worktree preserved on disk
+  → Worktree preserved on disk until cleanup
 ```
 
-**Fallback**: If `EnterWorktree` fails, the workflow creates a regular branch (`git checkout -b`) and continues without isolation.
+**Fallback**: If `git worktree add` fails, the workflow creates a regular branch (`git checkout -b`) and continues without isolation.
 
 ### File Ownership: sprint-status.yaml vs git-status.yaml
 
@@ -108,7 +108,7 @@ Both live in `_bmad-output/implementation-artifacts/`. The autopilot reads `spri
 ```
 [In worktree] bmad-dev-story updates sprint-status.yaml (BMAD-owned)
                      ↓
-[ExitWorktree] returns to project root
+[cd project-root] returns to project root
                      ↓
 [sync-status.sh] writes git fields to git-status.yaml (addon-owned)
                  atomic write (tmp + mv), never touches sprint-status

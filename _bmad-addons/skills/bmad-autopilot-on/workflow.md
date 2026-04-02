@@ -138,15 +138,15 @@ Resolve:
   <action>**Worktree health check** — run:
   `bash {{project_root}}/_bmad-addons/scripts/health-check.sh --base-branch {{base_branch}} --status-file {{status_file}}`
   Output classifies each worktree as CLEAN_DONE, COMMITTED, STALE, DIRTY, or ORPHAN.
-  - CLEAN_DONE: `git worktree remove .claude/worktrees/<name>` + `git worktree prune`
+  - CLEAN_DONE: `git worktree remove .worktrees/<name>` + `git worktree prune`
   - COMMITTED: log "Recoverable work found for <name> — will push via git -C"
-    Push the branch: `git -C .claude/worktrees/<name> push -u origin <branch> 2>&1`
+    Push the branch: `git -C .worktrees/<name> push -u origin <branch> 2>&1`
     If `{{create_pr}}` is true AND platform != git_only: create PR via `bash {{project_root}}/_bmad-addons/scripts/create-pr.sh ...`
     If `{{create_pr}}` is false OR platform is git_only: merge directly — `git checkout -B {{base_branch}} origin/{{base_branch}} && git merge <branch> --no-edit && git push origin {{base_branch}}`
     Then remove worktree.
-  - STALE: `git worktree remove .claude/worktrees/<name> --force` + prune
+  - STALE: `git worktree remove .worktrees/<name> --force` + prune
   - DIRTY: warn user, ask how to proceed (stash/commit/discard)
-  - ORPHAN: `rm -rf .claude/worktrees/<name>` + `git worktree prune`
+  - ORPHAN: `rm -rf .worktrees/<name>` + `git worktree prune`
   </action>
 
   <action>Set `{{git_enabled}}` = true, `{{platform}}` = detected value</action>
@@ -344,16 +344,22 @@ Resolve:
   - Branch from base: `git checkout origin/{{base_branch}}`
   - Set `{{pr_base}}` = `{{base_branch}}`
 
-  (Detached HEAD is fine — EnterWorktree branches from HEAD)
+  (Detached HEAD is fine — the worktree add below creates a new branch from HEAD)
   </action>
 
-  <action>**Enter worktree** using the EnterWorktree tool:
-  `EnterWorktree(name: "{{current_story}}")`
-  This creates `.claude/worktrees/{{current_story}}` with a new branch from HEAD.
-  ALL subsequent tool calls now operate in this worktree directory.
+  <action>**Create worktree** using standard git commands (works in any coding agent):
+  ```
+  git worktree add "{{project_root}}/.worktrees/{{current_story}}" -b "{{branch_prefix}}{{branch_name}}" 2>&1
+  ```
+  This creates `.worktrees/{{current_story}}/` with a new branch `{{branch_prefix}}{{branch_name}}` from HEAD.
 
-  **If EnterWorktree fails** (disk full, permissions, etc.):
-  - Log: "WARN: EnterWorktree failed — continuing without worktree isolation"
+  If worktree add fails (branch already exists):
+  ```
+  git worktree add "{{project_root}}/.worktrees/{{current_story}}" "{{branch_prefix}}{{branch_name}}" 2>&1
+  ```
+
+  **If both fail** (disk full, permissions, etc.):
+  - Log: "WARN: git worktree add failed — continuing without worktree isolation"
   - Set `{{in_worktree}}` = false
   - Create branch manually: `git checkout -b {{branch_prefix}}{{branch_name}}`
     If checkout also fails (branch already exists): `git checkout {{branch_prefix}}{{branch_name}}`
@@ -362,9 +368,11 @@ Resolve:
   - Git operations (commit, push, PR) still work on the branch
   </action>
 
-  <check if="EnterWorktree succeeded">
-    <action>**Rename branch** to our naming convention.
-    Run: `git branch -m "$(git branch --show-current)" "{{branch_prefix}}{{branch_name}}"`
+  <check if="worktree add succeeded">
+    <action>**Change working directory** to the worktree:
+    `cd {{project_root}}/.worktrees/{{current_story}}`
+    All subsequent file operations and commands MUST use this directory.
+    Set `{{worktree_path}}` = `{{project_root}}/.worktrees/{{current_story}}`
     </action>
 
     <action>**Init submodules** if needed.
@@ -466,7 +474,7 @@ pr_base: {{pr_base}}
   <action>Sanitize branch name for `{{current_story}}` (same logic as step 3)</action>
   <action>Check if branch already registered in `{git_status_file}` for this story → skip if so</action>
   <action>Register branch in `{git_status_file}`:
-  `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{git_status_file}" --branch "{{branch_prefix}}{{branch_name}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
+  `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{{project_root}}/_bmad-output/implementation-artifacts/git-status.yaml" --branch "{{branch_prefix}}{{branch_name}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
   </action>
 </check>
 
@@ -605,9 +613,9 @@ Instruct: "Re-verify code review for story {{current_story}} — all patch findi
   If creation fails → log warning, set `{{pr_url}}` = null, continue.
   </action>
 
-  <action>**Exit worktree** — use ExitWorktree tool:
-  `ExitWorktree(action: "keep")`
-  Session cwd returns to `{{project_root}}`.
+  <action>**Exit worktree** — change working directory back to project root:
+  `cd {{project_root}}`
+  All subsequent commands now run from the project root.
   Set `{{in_worktree}}` = false.
   </action>
 
@@ -626,7 +634,7 @@ Instruct: "Re-verify code review for story {{current_story}} — all patch findi
     <check if="{{cleanup_on_merge}} is true">
       <action>**Cleanup worktree** for merged story — branch was merged locally, worktree is no longer needed:
       ```
-      git worktree remove .claude/worktrees/{{current_story}} --force 2>/dev/null || true
+      git worktree remove .worktrees/{{current_story}} --force 2>/dev/null || true
       git worktree prune
       ```
       </action>
@@ -645,7 +653,7 @@ Instruct: "Re-verify code review for story {{current_story}} — all patch findi
   </action>
 
   <action>**Write git status** to addon's own file (NEVER modify sprint-status.yaml) — runs AFTER checkout to base branch so the file persists in the working tree for the commit below:
-  `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{git_status_file}" --branch "{{branch_prefix}}{{branch_name}}" --commit "{{story_commit}}" --patch-commits "{{patch_commits_csv}}" --push-status "{{push_status}}" --pr-url "{{pr_url}}" --lint-result "{{lint_result}}" --worktree "{{project_root}}/.claude/worktrees/{{current_story}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
+  `bash {{project_root}}/_bmad-addons/scripts/sync-status.sh --story "{{current_story}}" --git-status-file "{{project_root}}/_bmad-output/implementation-artifacts/git-status.yaml" --branch "{{branch_prefix}}{{branch_name}}" --commit "{{story_commit}}" --patch-commits "{{patch_commits_csv}}" --push-status "{{push_status}}" --pr-url "{{pr_url}}" --lint-result "{{lint_result}}" --worktree "{{project_root}}/.worktrees/{{current_story}}" --platform "{{platform}}" --base-branch "{{base_branch}}"`
   This writes to `git-status.yaml` (addon-owned). Sprint-status.yaml is BMAD-owned — updated by BMAD skills only.
   </action>
 
@@ -693,9 +701,9 @@ Instruct: "Re-verify code review for story {{current_story}} — all patch findi
     <check if="{{cleanup_on_merge}} is true">
       <action>**Cleanup worktrees** for completed stories:
       For each story in this epic:
-        1. Check if worktree at `.claude/worktrees/{{story-key}}` exists
-        2. Check if clean: `git -C .claude/worktrees/{{story-key}} status --porcelain`
-        3. If clean → `git worktree remove .claude/worktrees/{{story-key}}` + `git worktree prune`
+        1. Check if worktree at `.worktrees/{{story-key}}` exists
+        2. Check if clean: `git -C .worktrees/{{story-key}} status --porcelain`
+        3. If clean → `git worktree remove .worktrees/{{story-key}}` + `git worktree prune`
            Update `{git_status_file}` for this story: `worktree_cleaned: true`
         4. If dirty → warn user, skip cleanup
       </action>
@@ -743,7 +751,7 @@ pr_base: {{pr_base}}
 <!-- GIT: Exit worktree if we're in one before checkpointing -->
 <check if="{{in_worktree}}">
   <action>Commit any uncommitted work in the worktree first</action>
-  <action>`ExitWorktree(action: "keep")` — preserve worktree for next session</action>
+  <action>`cd {{project_root}}` — return to project root, preserve worktree for next session</action>
   <action>Write git status to git-status.yaml (same sync as step 7)</action>
   <action>Set `{{in_worktree}}` = false</action>
 </check>
@@ -780,7 +788,7 @@ No work will be repeated.
 
 <!-- GIT: Exit worktree if still in one -->
 <check if="{{in_worktree}}">
-  <action>`ExitWorktree(action: "keep")`</action>
+  <action>`cd {{project_root}}` — return to project root</action>
   <action>Set `{{in_worktree}}` = false</action>
 </check>
 

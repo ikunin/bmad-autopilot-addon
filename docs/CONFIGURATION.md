@@ -227,7 +227,7 @@ git_integration:
 stories:
   1-1-add-login:
     branch: story/1-1-add-login
-    worktree: .claude/worktrees/1-1-add-login
+    worktree: .worktrees/1-1-add-login
     story_commit: abc1234
     patch_commits: [def5678, ghi9012]
     lint_result: "2 warnings — non-blocking"
@@ -242,7 +242,7 @@ stories:
 | Field | Type | Description |
 |-------|------|-------------|
 | `branch` | string | Git branch name (`story/<key>`) |
-| `worktree` | string | Worktree path (`.claude/worktrees/<key>`) |
+| `worktree` | string | Worktree path (`.worktrees/<key>`) |
 | `story_commit` | string | SHA of the main story commit |
 | `patch_commits` | list | SHAs of code review patch commits |
 | `lint_result` | string | Lint summary (non-blocking) |

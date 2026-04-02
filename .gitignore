@@ -2,10 +2,12 @@
 _bmad/
 _bmad-output/
 
-# Claude Code
+# Tool-specific skill directories
 .claude/skills/
-.claude/worktrees/
 .claude/.addon-backups/
+
+# Worktrees (agent-neutral location)
+.worktrees/
 
 # Addon runtime artifacts
 .autopilot.lock

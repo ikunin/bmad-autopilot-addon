@@ -33,9 +33,9 @@ Resolve:
 
 ### Step 1 — Exit worktree if active
 
-<check if="current working directory appears to be inside a worktree (check if `.claude/worktrees/` is in the path or run `git rev-parse --show-toplevel` and compare to project_root)">
+<check if="current working directory appears to be inside a worktree (check if `.worktrees/` is in the path or run `git rev-parse --show-toplevel` and compare to project_root)">
   <action>Commit any uncommitted work if possible</action>
-  <action>`ExitWorktree(action: "keep")` — preserve worktree for later resume</action>
+  <action>`cd` to project root — preserve worktree for later resume</action>
   <action>Log: "Exited worktree, returned to project root"</action>
 </check>
 

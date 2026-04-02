@@ -2,7 +2,7 @@
 # Worktree health check for autopilot session recovery.
 # Detects orphaned worktrees from crashed sessions and classifies them.
 #
-# Usage: health-check.sh [--worktrees-dir .claude/worktrees] [--base-branch main] [--status-file path]
+# Usage: health-check.sh [--worktrees-dir .worktrees] [--base-branch main] [--status-file path]
 #
 # Output (one line per worktree):
 #   CLEAN_DONE:<name>     — story done, worktree clean → safe to remove
@@ -14,7 +14,7 @@
 # Summary line at end: SUMMARY:<total>:<clean_done>:<committed>:<stale>:<dirty>:<orphan>
 set -e
 
-WORKTREES_DIR=".claude/worktrees"
+WORKTREES_DIR=".worktrees"
 BASE_BRANCH="main"
 STATUS_FILE=""
 

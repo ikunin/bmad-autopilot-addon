@@ -132,7 +132,7 @@ export function createTempProject(options: TempProjectOptions = {}): TempProject
   // Create .gitignore
   writeFileSync(
     join(dir, ".gitignore"),
-    ".autopilot.lock\nnode_modules/\n.claude/worktrees/\n"
+    ".autopilot.lock\nnode_modules/\n.worktrees/\n"
   );
   exec("git add .gitignore && git commit -m 'add gitignore'", dir);
 

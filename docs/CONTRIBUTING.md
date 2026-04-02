@@ -112,9 +112,9 @@ Skills are markdown prompts interpreted by an LLM. Complex multi-step Bash embed
 
 Subagents (launched via the Agent tool) cannot invoke the Skill tool. Agent prompts must be self-contained — they can't delegate to other Skills.
 
-### Why EnterWorktree instead of cd?
+### Worktree isolation via git worktree
 
-`cd` in a Bash tool call does NOT persist to subsequent tool calls. `EnterWorktree` is the only mechanism that changes the working directory for ALL tools in a session, including the Skill tool.
+Story isolation uses standard `git worktree add` commands, making it compatible with all supported coding agents. The workflow `cd`s into the worktree directory and back to the project root when done.
 
 ### Why explicit staging instead of git add -A?
 

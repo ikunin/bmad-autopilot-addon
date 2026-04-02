@@ -46,8 +46,7 @@ The autopilot will:
 
 For each story, the autopilot:
 
-1. **Creates a worktree** via `EnterWorktree` — isolates the story's code changes
-2. **Renames the branch** to `story/{sanitized-key}`
+1. **Creates a worktree** via `git worktree add` — isolates the story's code changes on branch `story/{sanitized-key}`
 3. **Runs `bmad-dev-story`** in the worktree — writes code and tests
 4. **Lints** changed files (language-aware, errors-first output)
 5. **Stages** files explicitly (never `git add -A`) with pre-commit checks
@@ -91,7 +90,7 @@ If your project uses git submodules (`.gitmodules` present), the autopilot autom
 If a session crashes, the next `/bmad-autopilot-on` will:
 
 1. **Remove stale locks** — locks older than 30 minutes are auto-removed
-2. **Health check worktrees** — scans `.claude/worktrees/` for orphaned directories
+2. **Health check worktrees** — scans `.worktrees/` for orphaned directories
 3. **Classify each worktree**:
    - **COMMITTED** — branch has commits beyond main. Pushed and PR created automatically.
    - **CLEAN_DONE** — story is marked done, worktree is clean. Removed.

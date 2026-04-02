@@ -17,7 +17,7 @@ That's it. The autopilot takes over and drives your entire sprint to completion:
 ### What it does, story by story
 
 1. **Reads your sprint plan** — picks the next story from `sprint-status.yaml`
-2. **Creates an isolated worktree** — each story gets its own branch via `EnterWorktree`, keeping `main` clean
+2. **Creates an isolated worktree** — each story gets its own branch via `git worktree add`, keeping `main` clean
 3. **Implements the story** — invokes `bmad-dev-story` which writes code and tests following TDD (RED then GREEN)
 4. **Lints the code** — auto-detects your language (Python, JS/TS, Rust, Go, Ruby) and runs the appropriate linter on changed files only
 5. **Stages explicitly** — never runs `git add -A`. Stages only changed files with pre-commit checks: secrets scanning, file size limits, binary detection

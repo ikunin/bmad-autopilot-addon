@@ -1,5 +1,5 @@
 # Git Workflow Configuration for BMAD Autopilot Add-On
-# Worktrees are managed by Claude Code's EnterWorktree tool at .claude/worktrees/{name}
+# Worktrees are managed via standard git commands at .worktrees/{name}
 
 git:
   enabled: true # false = all git ops silently skip
@@ -54,7 +54,7 @@ git:
                      # false = merge directly to base branch after push
     pr_template: "modules/git/templates/pr-body.md" # relative to _bmad-addons/
 
-  # Worktree settings (location managed by EnterWorktree at .claude/worktrees/)
+  # Worktree settings (location: .worktrees/ in project root)
   worktree:
     submodule_init: auto # auto = only if .gitmodules exists
     submodule_timeout: 30 # seconds
