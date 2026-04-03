@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-PKG_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Resolve symlinks so PKG_ROOT points to the actual package directory
+SOURCE="$0"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  # Handle relative symlinks
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+PKG_ROOT="$(cd "$(dirname "$SOURCE")/.." && pwd)"
 export BMAD_PROJECT_ROOT="$(pwd)"
 
 COMMAND="${1:-install}"
