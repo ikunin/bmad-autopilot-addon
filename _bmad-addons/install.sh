@@ -2,7 +2,7 @@
 set -e
 
 ADDON_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$ADDON_DIR")"
+PROJECT_ROOT="${BMAD_PROJECT_ROOT:-$(dirname "$ADDON_DIR")}"
 MANIFEST="$PROJECT_ROOT/_bmad/_config/manifest.yaml"
 ADDON_MANIFEST="$ADDON_DIR/manifest.yaml"
 MAX_BACKUPS=3

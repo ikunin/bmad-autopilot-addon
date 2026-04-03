@@ -1,0 +1,14 @@
+_bmad/
+_bmad-output/
+tests/
+docs/
+.claude/
+.worktrees/
+.autopilot.lock
+.git/
+.gitignore
+.gitattributes
+CLAUDE.md
+AGENTS.md
+CHANGELOG.md
+*.DS_Store

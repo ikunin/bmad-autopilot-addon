@@ -2,7 +2,7 @@
 set -e
 
 ADDON_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$ADDON_DIR")"
+PROJECT_ROOT="${BMAD_PROJECT_ROOT:-$(dirname "$ADDON_DIR")}"
 FORCE=false
 
 while [ "$#" -gt 0 ]; do

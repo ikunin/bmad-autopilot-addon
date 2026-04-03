@@ -1,0 +1,32 @@
+{
+  "name": "bmad-autopilot-addon",
+  "version": "1.0.0",
+  "description": "Autonomous end-to-end software delivery powered by the BMAD Method — git workflow, multi-agent skills, and autopilot execution",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ikunin/bmad-autopilot-addon.git"
+  },
+  "homepage": "https://github.com/ikunin/bmad-autopilot-addon",
+  "bin": {
+    "bmad-autopilot-addon": "./bin/bmad-autopilot-addon"
+  },
+  "files": [
+    "bin/",
+    "_bmad-addons/"
+  ],
+  "keywords": [
+    "bmad",
+    "autopilot",
+    "ai-development",
+    "claude",
+    "cursor",
+    "windsurf",
+    "cline",
+    "git-workflow",
+    "multi-agent"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
