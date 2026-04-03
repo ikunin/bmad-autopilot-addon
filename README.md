@@ -10,6 +10,20 @@
 
 Autonomous end-to-end software delivery powered by the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD). One command takes your project from sprint plan to reviewed, tested, PR-ready code — with full git workflow and multi-agent intelligence.
 
+## Included Skills
+
+| Skill | Description |
+|-------|-------------|
+| `/bmad-autopilot-on` | Engage autonomous sprint execution |
+| `/bmad-autopilot-off` | Disengage and show status |
+| `/bmad-ma-code-review` | Parallel 3-layer adversarial code review |
+| `/bmad-ma-codebase-map` | 5-stream brownfield codebase analysis |
+| `/bmad-ma-assess` | Tech debt and dependency audit |
+| `/bmad-ma-reverse-architect` | Extract architecture from existing code |
+| `/bmad-ma-migrate` | Legacy migration planning |
+| `/bmad-ma-research` | Parallel web research fan-out |
+| `/bmad-ma-party-mode` | Multi-persona agent discussions |
+
 ## The Problem
 
 BMAD provides a structured development workflow with 50+ skills and agent personas. But using it manually means invoking each skill one at a time, navigating menus, making routine decisions, and handling git operations yourself. For a sprint with 10 stories across 3 epics, that's dozens of manual steps, context switches, and session restarts.
@@ -188,27 +202,6 @@ npx bmad-autopilot-addon install --tools claude-code,cursor --yes
 /bmad-autopilot-on
 ```
 
-### BMAD Modules
-
-| Module | Code | Description |
-|--------|------|-------------|
-| **BMad Method** | `bmm` | Core development workflow — analysis, planning, implementation, review |
-| **Test Architect** | `tea` | Enterprise test strategy — ATDD, test design, CI setup, NFR assessment, traceability |
-
-The TEA module adds these skills to your toolkit:
-
-| Skill | Description |
-|-------|-------------|
-| `/bmad-testarch-test-design` | Risk-based test planning |
-| `/bmad-testarch-framework` | Initialize production-ready test framework (Playwright, Cypress) |
-| `/bmad-testarch-atdd` | Generate failing acceptance tests (TDD red phase) |
-| `/bmad-testarch-automate` | Expand test automation coverage |
-| `/bmad-testarch-ci` | Configure CI/CD quality pipeline with test execution |
-| `/bmad-testarch-nfr` | Non-functional requirements assessment (performance, security) |
-| `/bmad-testarch-test-review` | Quality audit with 0-100 scoring |
-| `/bmad-testarch-trace` | Coverage traceability matrix and gate decisions |
-| `/bmad-teach-me-testing` | Interactive testing education (7 sessions) |
-
 ## Supported Tools
 
 The add-on uses the universal SKILL.md format — same skills work across all 9 tools:
@@ -261,6 +254,35 @@ git:
 | Kotlin | ktlint, detekt | PHP | phpstan, phpcs |
 
 First found wins per language. Multi-language projects (monorepos) lint all languages in one pass. See [Extending](docs/EXTENDING.md) to add more.
+
+## Configuration
+
+All settings live in two YAML files — edit after install to customize behavior.
+
+### Git Workflow (`_bmad-addons/modules/git/config.yaml`)
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `git.enabled` | `true` | Enable/disable all git operations |
+| `git.base_branch` | `main` | Branch PRs target |
+| `git.branch_prefix` | `story/` | Story branch naming (e.g., `story/1-2-user-auth`) |
+| `git.lint.enabled` | `true` | Lint changed files after implementation |
+| `git.lint.blocking` | `false` | `true` = lint errors halt autopilot |
+| `git.push.auto` | `true` | Auto-push branches after commit |
+| `git.push.create_pr` | `true` | Create PR (`false` = direct merge to base branch) |
+| `git.platform.provider` | `auto` | `auto` \| `github` \| `gitlab` \| `bitbucket` \| `gitea` \| `git_only` |
+| `git.lock.stale_timeout_minutes` | `30` | Auto-remove orphaned lock files |
+| `git.worktree.cleanup_on_merge` | `true` | Delete worktrees after merge |
+
+### Multi-Agent (`_bmad-addons/modules/ma/config.yaml`)
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `multi_agent.enabled` | `true` | Enable parallel agent skills |
+| `multi_agent.max_parallel_research` | `3` | Concurrent research agents per batch |
+| `multi_agent.max_parallel_analysis` | `5` | Concurrent codebase analysis agents |
+
+See the [Configuration Reference](docs/CONFIGURATION.md) for the full list.
 
 ## Requirements
 
