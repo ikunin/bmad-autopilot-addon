@@ -41,38 +41,12 @@ For test architecture support, add the TEA module:
 npx bmad-method install --modules bmm,tea --tools claude-code --yes
 ```
 
-## Step 3: Add the Autopilot Add-On
+## Step 3: Install the Autopilot Add-On
 
-Clone the add-on into your project as the `_bmad-addons` directory:
-
-```bash
-# From your project root
-git clone https://github.com/ikunin/bmad-autopilot-addon.git _bmad-addons
-```
-
-Or add it as a git submodule (keeps it updatable):
+### Via npx (recommended)
 
 ```bash
-git submodule add https://github.com/ikunin/bmad-autopilot-addon.git _bmad-addons
-```
-
-On Windows (Git Bash or WSL):
-```bash
-# Same commands work in Git Bash and WSL
-git clone https://github.com/ikunin/bmad-autopilot-addon.git _bmad-addons
-```
-
-On Windows (PowerShell):
-```powershell
-git clone https://github.com/ikunin/bmad-autopilot-addon.git _bmad-addons
-```
-
-## Step 4: Run the Installer
-
-### Interactive (recommended)
-
-```bash
-bash _bmad-addons/install.sh
+npx bmad-autopilot-addon
 ```
 
 The installer will:
@@ -87,31 +61,31 @@ The installer will:
 
 ```bash
 # Single tool
-bash _bmad-addons/install.sh --tools claude-code
+npx bmad-autopilot-addon install --tools claude-code
 
 # Multiple tools
-bash _bmad-addons/install.sh --tools claude-code,cursor,windsurf
+npx bmad-autopilot-addon install --tools claude-code,cursor,windsurf
 
 # All supported tools
-bash _bmad-addons/install.sh --tools all
+npx bmad-autopilot-addon install --tools all
 ```
 
 ### Non-Interactive (CI/CD)
 
 ```bash
-bash _bmad-addons/install.sh --tools claude-code,cursor --yes
+npx bmad-autopilot-addon install --tools claude-code,cursor --yes
 ```
 
 ### Dry Run (preview without changes)
 
 ```bash
-bash _bmad-addons/install.sh --tools claude-code,cursor --dry-run
+npx bmad-autopilot-addon install --tools claude-code,cursor --dry-run
 ```
 
 ### Force Install (skip backups)
 
 ```bash
-bash _bmad-addons/install.sh --tools claude-code --force
+npx bmad-autopilot-addon install --tools claude-code --force
 ```
 
 ### Supported Tools
@@ -130,7 +104,7 @@ bash _bmad-addons/install.sh --tools claude-code --force
 
 All tools use the same universal SKILL.md format.
 
-## Step 5: Verify and Start
+## Step 4: Verify and Start
 
 After install, check that skills are available in your tool's directory:
 
@@ -172,7 +146,7 @@ Once verified, start the autopilot in your AI tool:
 BMAD updates may regenerate `.claude/skills/`. The add-on's skills use prefixes not in BMAD's manifest, so they typically survive. If any are lost:
 
 ```bash
-bash _bmad-addons/install.sh
+npx bmad-autopilot-addon
 ```
 
 Backups of previous versions are kept in `.claude/.addon-backups/` (last 3 per skill).
@@ -180,7 +154,7 @@ Backups of previous versions are kept in `.claude/.addon-backups/` (last 3 per s
 ## Uninstall
 
 ```bash
-bash _bmad-addons/uninstall.sh
+npx bmad-autopilot-addon uninstall
 ```
 
 This will:
@@ -191,7 +165,7 @@ This will:
 
 Use `--force` to remove dirty worktrees without prompting:
 ```bash
-bash _bmad-addons/uninstall.sh --force
+npx bmad-autopilot-addon uninstall --force
 ```
 
 BMAD's own skills are never affected.
@@ -309,13 +283,13 @@ Or wait 30 minutes for automatic stale lock removal.
 
 ### Windows (Git Bash / WSL)
 
-On Windows, always invoke scripts with `bash` explicitly:
+Use `npx` to install (requires Node.js):
 
 ```bash
-bash _bmad-addons/install.sh --tools claude-code
+npx bmad-autopilot-addon install --tools claude-code
 ```
 
-Not `./install.sh` (which may fail if the script has CRLF line endings or `/bin/bash` doesn't resolve).
+This works on Git Bash, WSL, and PowerShell.
 
 The repo includes `.gitattributes` that forces LF line endings for all scripts and YAML files, preventing CRLF issues on clone.
 

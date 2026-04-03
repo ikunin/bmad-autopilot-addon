@@ -87,9 +87,9 @@ bash _bmad-addons/scripts/lock.sh check
 ### Install/Uninstall
 
 ```bash
-bash _bmad-addons/install.sh --dry-run    # preview
-bash _bmad-addons/install.sh              # install
-bash _bmad-addons/uninstall.sh            # uninstall
+npx bmad-autopilot-addon install --dry-run   # preview
+npx bmad-autopilot-addon                     # install
+npx bmad-autopilot-addon uninstall           # uninstall
 ```
 
 ### Skills

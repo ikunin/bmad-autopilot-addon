@@ -35,8 +35,7 @@
 ## Getting Started
 
 1. **Install BMAD:** `npx bmad-method` in your project
-2. **Clone addon:** Place as `_bmad-addons/` in your project root
-3. **Run installer:** `bash _bmad-addons/install.sh`
-4. **Start autopilot:** `/bmad-autopilot-on` in your AI coding tool
+2. **Install addon:** `npx bmad-autopilot-addon`
+3. **Start autopilot:** `/bmad-autopilot-on` in your AI coding tool
 
 For detailed setup, see the [Installation Guide](./INSTALLATION.md).

@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.7] - 2026-04-03
+
+### Fixed
+- Bin script symlink resolution for npx compatibility
+- npm 11 bin path validation (removed `./` prefix)
+- Node.js wrapper for bin entry to pass npm publish validation
+- Synced manifest.yaml version with package.json
+
+### Added
+- **npx installation** — `npx bmad-autopilot-addon` replaces manual `bash _bmad-addons/install.sh`
+- Post-install output with usage guide, configuration reference, and skill descriptions
+- License and author info in post-install output
+- Package keywords (orchestrator, gemini)
+
+### Changed
+- Updated all documentation to reference `npx bmad-autopilot-addon` installation method
+
 ## [1.0.0] - 2026-03-29
 
 ### Added

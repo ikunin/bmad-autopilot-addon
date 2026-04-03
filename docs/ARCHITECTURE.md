@@ -153,7 +153,7 @@ All MA skills follow the same pattern:
 |---------|-----------|
 | BMAD update overwrites skills | Add-on skills use `bmad-autopilot-*` and `bmad-ma-*` prefixes, not in BMAD's `skill-manifest.csv` |
 | Source files modified | Source lives in `_bmad-addons/`, never touched by BMAD |
-| Need to re-install | `bash _bmad-addons/install.sh` restores all skills |
+| Need to re-install | `npx bmad-autopilot-addon` restores all skills |
 | Rollback | Backups in `.claude/.addon-backups/` (last 3 per skill) |
 
 ## Platform Abstraction

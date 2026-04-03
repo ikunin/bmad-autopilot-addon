@@ -1,4 +1,4 @@
-# BMAD Autopilot Add-On v1.0.0
+# BMAD Autopilot Add-On v1.0.7
 
 Autonomous end-to-end software delivery powered by the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD). One command takes your project from sprint plan to reviewed, tested, PR-ready code — with full git workflow and multi-agent intelligence.
 
@@ -170,14 +170,11 @@ npx bmad-method install --modules bmm,tea --tools claude-code,cursor --yes
 ```
 
 ```bash
-# 2. Install the autopilot add-on (interactive tool selection)
-bash _bmad-addons/install.sh
+# 2. Install the autopilot add-on
+npx bmad-autopilot-addon
 
 # Or specify tools directly:
-bash _bmad-addons/install.sh --tools claude-code,cursor
-
-# Or install for all supported tools:
-bash _bmad-addons/install.sh --tools all
+npx bmad-autopilot-addon install --tools claude-code,cursor --yes
 
 # 3. Start the autopilot in your IDE
 /bmad-autopilot-on
@@ -221,7 +218,7 @@ The add-on uses the universal SKILL.md format — same skills work across all 9 
 | GitHub Copilot | `.github/copilot/skills/` |
 
 ```bash
-bash _bmad-addons/install.sh --tools claude-code,cursor,gemini-cli
+npx bmad-autopilot-addon install --tools claude-code,cursor,gemini-cli
 ```
 
 ## Git Platforms

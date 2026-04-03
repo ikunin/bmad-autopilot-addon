@@ -178,8 +178,8 @@ bash _bmad-addons/scripts/detect-platform.sh
 
 ```bash
 # Dry run
-bash _bmad-addons/install.sh --dry-run
+npx bmad-autopilot-addon install --dry-run
 
 # Force reinstall
-bash _bmad-addons/install.sh --force --tools claude-code
+npx bmad-autopilot-addon install --force --tools claude-code
 ```
