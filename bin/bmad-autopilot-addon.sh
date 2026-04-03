@@ -10,7 +10,7 @@ while [ -L "$SOURCE" ]; do
   [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 PKG_ROOT="$(cd "$(dirname "$SOURCE")/.." && pwd)"
-export BMAD_PROJECT_ROOT="$(pwd)"
+export BMAD_PROJECT_ROOT="${BMAD_PROJECT_ROOT:-$(pwd)}"
 
 COMMAND="${1:-install}"
 shift 2>/dev/null || true
